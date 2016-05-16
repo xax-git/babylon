@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <title>Barák</title>
+    <!-- Babylon.js -->
+    <!--<script src="http://www.babylonjs.com/hand.minified-1.2.js"></script>-->
+    <!--<script src="http://www.babylonjs.com/cannon.js"></script>-->
+    <!--<script src="http://www.babylonjs.com/oimo.js"></script>-->
+    <script src="http://www.babylonjs.com/babylon.js"></script>
+    <script src="./lib/xax-babylon.js"></script>
+
+    <style>
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+        
+        #fpsLabel {
+            width: 100px;
+            position: absolute;
+            right: 140px;
+            top: 10px;
+            background-color: black;
+            border: yellow 1px solid;
+            color: gray;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div id="fpsLabel"></div>
+<canvas id="renderCanvas"></canvas>
+<script>
+    var canvas = document.getElementById("renderCanvas");
+    var engine = new BABYLON.Engine(canvas, true);
+    var boxes = [];
+
+    var partaje = ["Šolta","Němec","Bednář","Pánková","Chaloupková",
+    "Lešková","Pitařová","Sirotek","Pelikánová","Damašek","Krsková",
+    "Kopalová","Hoffmanová","Horák","Hedánková","Tulach","Bajerová",
+    "Leitlová","Exner","Čížek","Janoušek","Podhorná","Alexander",
+    "Dašková","Hávová","Moravcová","Jiránek","Franko","Tomeček","Laňarová"];
+
+    var teplo = [1944,2153,1887,4417,1465,1736,181,971,330,1375,4652,363,857,930,1882,1167,833,230,882,614,441,1165,1470,1869,1241,2187,1443,1782,1193,1894];
+
+    var teplo_max = 2187;
+    var teplo_min = 181;
+    var teplo_rozsah = teplo_max-teplo_min;
+
+    var ox = 20;
+    var oy = 20;
+    var oz = 00;
+
+    function createScene() {
+        var scene = new BABYLON.Scene(engine);
+
+        scene.ambientColor = new BABYLON.Color3(1, 1, 1);
+
+//        var light = new BABYLON.PointLight("Omni", new BABYLON.Vector3(ox+20, oy-200, oz-300), scene);
+//        light.difuse = new BABYLON.Color3(1,1,1);
+
+        var camera = new BABYLON.ArcRotateCamera("Camera", 0.4, 1.2, 20, new BABYLON.Vector3(ox+0, oy+20, oz-50), scene);
+        camera.setPosition(new BABYLON.Vector3(ox, oy+10, -100));
+        camera.target = new BABYLON.Vector3(ox+20, oy+10, oz+0);
+
+
+        // addWSADtoCamera(camera);
+
+        camera.attachControl(canvas, true);
+
+        var material1 = new BABYLON.StandardMaterial("mat1", scene);
+        material1.diffuseColor = new BABYLON.Color3(1, 1, 1);
+
+
+        var faces = new Array(6);
+
+        faces[0] = new BABYLON.Vector4(0,0,1,1);
+        faces[1] = new BABYLON.Vector4(0,0,0.1,0.1);
+        faces[2] = new BABYLON.Vector4(0,0,0.1,0.1);
+        faces[3] = new BABYLON.Vector4(0,0,0.1,0.1);
+        faces[4] = new BABYLON.Vector4(0,0,0.1,0.1);
+        faces[5] = new BABYLON.Vector4(0,0,0.1,0.1);
+
+
+        var boxOptions = {
+            width: 5,
+            height: 5,
+            depth: 5
+ //           faceUV: faces
+        }
+
+        box = BABYLON.MeshBuilder.CreateBox("Box", boxOptions, scene);
+        box.material = material1;
+
+//        box.material.reflectionTexture = new BABYLON.MirrorTexture("mirror", 512, scene, true);
+//        box.material.reflectionTexture.mirrorPlane = new BABYLON.Plane(0, -1.0, 0, -2.0);
+//        box.material.reflectionTexture.renderList = [box];
+
+        var index=0;
+        //var boxes = array;
+
+        for (var i = 0; i < 6; i++) {
+            for (var j = 0; j < 6; j++) {
+                for (var k = 0; k < 6; k++) {
+
+                    var txtIndex = i + j + k;
+                    var numIndex = i * 25 + j * 5 + k;
+                    if (i + j + k > 0) var newBox = box.clone(txtIndex);
+                    else var newBox = box;
+                    newBox.position = new BABYLON.Vector3(ox + i * 5.1, oy + j * 5.1, oz + k * 5.1);
+
+                    var newMaterial = new BABYLON.StandardMaterial("mat" + numIndex, scene);
+                    //newMaterial.diffuseColor = new BABYLON.Color3(i/4,j/4,0);
+
+                    var t = i * j * k;
+
+
+                    var cSlozka = (2 * t);
+                    var bSlozka = (1 - (cSlozka));
+
+                    if (cSlozka > bSlozka) {
+                        bSlozka = 0;
+                        var color = "red";
+                    }
+                    else {
+                        cSlozka = 0;
+                        var color = 'black';
+                    }
+
+                    // newMaterial.hasAlpha = true;
+                    newMaterial.alpha = 0.45;
+                    // newMaterial.emissiveColor = new BABYLON.Color3(cSlozka,0.5,bSlozka);
+                    newMaterial.ambientColor = new BABYLON.Color3(cSlozka, 0.5, bSlozka);
+                    // newMaterial.specularColor = new BABYLON.Color3(cSlozka,0.5,bSlozka);
+                    console.log(t + ' ' + cSlozka + ' ' + bSlozka);
+
+                    //newMaterial.diffuseColor = new BABYLON.Color3(1, 1, 0);
+
+                    var newBackgroundTexture = new BABYLON.DynamicTexture("dynamic texture", 512, scene, true);
+                    newMaterial.diffuseTexture = newBackgroundTexture;
+                    newBackgroundTexture.drawText(txtIndex, null, 260, "bold 180px Segoe UI", "black", "white");
+                    newBox.material = newMaterial;
+
+                    boxes[numIndex] = newBox;
+                }
+            }
+        }
+
+
+        // Skybox
+        var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, scene);
+        var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+        skyboxMaterial.backFaceCulling = false;
+        skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("textures/skybox", scene);
+        skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+        skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.disableLighting = true;
+        skybox.material = skyboxMaterial;
+
+        var alpha = 0;
+        scene.registerBeforeRender(function () {
+
+            fps = engine.getFps().toFixed(0);
+            document.getElementById('fpsLabel').innerHTML = fps+'<br>'+camera.position.x.toFixed(0)+','+camera.position.y.toFixed(0)+','+camera.position.z.toFixed(0);
+
+        });
+        return scene;
+    };
+
+    var scene = createScene();
+
+    showAxis(50, scene);
+
+    engine.runRenderLoop(function () {
+        scene.render();
+    });
+
+    // Resize
+    window.addEventListener("resize", function () {
+        engine.resize();
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <title>Babylon.js sample code</title>
+    <!-- Babylon.js -->
+    <!--<script src="http://www.babylonjs.com/hand.minified-1.2.js"></script>-->
+    <!--<script src="http://www.babylonjs.com/cannon.js"></script>-->
+    <!--<script src="http://www.babylonjs.com/oimo.js"></script>-->
+    <script src="http://www.babylonjs.com/babylon.js"></script>
+    <script src="./lib/xax-babylon.js"></script>
+
+    <style>
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+        
+        #fpsLabel {
+            width: 100px;
+            position: absolute;
+            right: 140px;
+            top: 10px;
+            background-color: black;
+            border: yellow 1px solid;
+            color: gray;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div id="fpsLabel"></div>
+<canvas id="renderCanvas"></canvas>
+<script>
+    var canvas = document.getElementById("renderCanvas");
+    var engine = new BABYLON.Engine(canvas, true);
+    var boxes = [];
+
+
+    function createScene() {
+        var scene = new BABYLON.Scene(engine);
+
+        var light = new BABYLON.PointLight("Omni", new BABYLON.Vector3(-10, -50, -50), scene);
+        light.diffuse = new BABYLON.Color3(1,1,1);
+        light.specular = new BABYLON.Color3(1,1,1);
+        // var camera = new BABYLON.ArcRotateCamera("Camera", 0.4, 1.2, 20, new BABYLON.Vector3(-10, 0, 0), scene);
+        var camera = new BABYLON.FreeCamera("Camera", new BABYLON.Vector3(-10, -10, -50), scene);
+
+        var light0 = new BABYLON.DirectionalLight("Dir1", new BABYLON.Vector3(1, -1, 0), scene);
+        light0.position = new BABYLON.Vector3(-50, 50, 20);
+        light0.diffuse = new BABYLON.Color3(1,1,1);
+        light0.specular = new BABYLON.Color3(1,1,1);
+
+        var light1 = new BABYLON.DirectionalLight("Dir2", new BABYLON.Vector3(-1, -1, -1), scene);
+        light1.position = new BABYLON.Vector3(50, 50, 50);
+        light1.diffuse = new BABYLON.Color3(1,0,0);
+        light1.specular = new BABYLON.Color3(1,0,0);
+
+        addWSADtoCamera(camera);
+
+        camera.attachControl(canvas, true);
+
+        var material1 = new BABYLON.StandardMaterial("mat1", scene);
+        material1.diffuseColor = new BABYLON.Color3(1, 1, 0);
+        var backgroundTexture = new BABYLON.DynamicTexture("dynamic texture", 512, scene, true);
+        material1.diffuseTexture = backgroundTexture;
+        backgroundTexture.drawText("Eternalcoding", null, 80, "bold 70px Segoe UI", "white", "#555555");
+
+        var faces = new Array(6);
+
+        faces[0] = new BABYLON.Vector4(0,0,1,1);
+        faces[1] = new BABYLON.Vector4(0,0,0.1,0.1);
+        faces[2] = new BABYLON.Vector4(0,0,0.1,0.1);
+        faces[3] = new BABYLON.Vector4(0,0,0.1,0.1);
+        faces[4] = new BABYLON.Vector4(0,0,0.1,0.1);
+        faces[5] = new BABYLON.Vector4(0,0,0.1,0.1);
+
+
+        var boxOptions = {
+            width: 3,
+            height: 3,
+            depth: 3
+ //           faceUV: faces
+        }
+
+        box = BABYLON.MeshBuilder.CreateBox("Box", boxOptions, scene);
+        box.material = material1;
+
+//        box.material.reflectionTexture = new BABYLON.MirrorTexture("mirror", 512, scene, true);
+//        box.material.reflectionTexture.mirrorPlane = new BABYLON.Plane(0, -1.0, 0, -2.0);
+//        box.material.reflectionTexture.renderList = [box];
+
+        var index=0;
+        //var boxes = array;
+
+        for (var i = 0; i < 5; i++) {
+            for (var j = 0; j < 5; j++) {
+                for (var k = 0; k < 5; k++) {
+
+                    var txtIndex = i + j + k;
+                    var numIndex = i*5*5+j*5+k;
+                    if (i+j+k>0) var newBox = box.clone("index: " + txtIndex);
+                    else var newBox = box;
+                    newBox.position = new BABYLON.Vector3(-i * 5, -j * 5, -k * 5);
+
+                    var newMaterial = new BABYLON.StandardMaterial("mat"+numIndex, scene);
+                    newMaterial.diffuseColor = new BABYLON.Color3(i/4,j/4,k/4);
+                    newMaterial.specularColor = new BABYLON.Color3(i/4,j/4,k/4);
+                    //newMaterial.diffuseColor = new BABYLON.Color3(1, 1, 0);
+
+                    var newBackgroundTexture = new BABYLON.DynamicTexture("dynamic texture", 512, scene, true);
+                    newMaterial.diffuseTexture = newBackgroundTexture;
+                    newBackgroundTexture.drawText("Box:"+numIndex, null, 80, "bold 70px Segoe UI", "white", "#555555");
+                    newBox.material = newMaterial;
+
+                    boxes[numIndex]=newBox;
+                }
+            }
+
+        }
+
+        // box.dispose();
+        
+
+        // Fog
+//        scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
+        //BABYLON.Scene.FOGMODE_NONE;
+        //BABYLON.Scene.FOGMODE_EXP;
+        //BABYLON.Scene.FOGMODE_EXP2;
+        //BABYLON.Scene.FOGMODE_LINEAR;
+
+//        scene.fogColor = new BABYLON.Color3(0.9, 0.9, 0.85);
+//        scene.fogDensity = 0.01;
+
+        //Only if LINEAR
+        //scene.fogStart = 20.0;
+        //scene.fogEnd = 60.0;
+
+        // Skybox
+        var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, scene);
+        var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+        skyboxMaterial.backFaceCulling = false;
+        skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("textures/skybox", scene);
+        skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+        skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.disableLighting = true;
+        skybox.material = skyboxMaterial;
+
+        var alpha = 0;
+        scene.registerBeforeRender(function () {
+
+//            scene.fogDensity = Math.cos(alpha) / 10;
+//            alpha += 0.02;
+            fps = engine.getFps().toFixed(0);
+            document.getElementById('fpsLabel').innerHTML = fps+'<br>'+camera.position.x.toFixed(0)+','+camera.position.y.toFixed(0)+','+camera.position.z.toFixed(0);
+//            for (i = 0; i < 5*5*5; i++) {
+//                var box = boxes[i];
+//                box.rotation.x += 0.02;
+//             }
+
+        });
+        return scene;
+    };
+
+    var scene = createScene();
+
+    showAxis(50, scene);
+
+    engine.runRenderLoop(function () {
+        scene.render();
+    });
+
+    // Resize
+    window.addEventListener("resize", function () {
+        engine.resize();
+    });
+</script>
+</body>
+</html>
